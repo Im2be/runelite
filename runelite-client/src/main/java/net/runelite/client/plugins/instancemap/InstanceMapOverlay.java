@@ -37,16 +37,14 @@ import lombok.Setter;
 import net.runelite.api.Client;
 import net.runelite.api.Constants;
 import net.runelite.api.Player;
-import static net.runelite.api.SpriteID.WINDOW_CLOSE_BUTTON_RED_X;
-import static net.runelite.api.SpriteID.WINDOW_CLOSE_BUTTON_RED_X_HOVERED;
 import net.runelite.api.SpritePixels;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.gameval.SpriteID;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.BackgroundComponent;
 
 @Singleton
@@ -100,7 +98,7 @@ class InstanceMapOverlay extends Overlay
 	{
 		this.client = client;
 		this.spriteManager = spriteManager;
-		setPriority(OverlayPriority.HIGH);
+		setPriority(PRIORITY_HIGH);
 		setPosition(OverlayPosition.TOP_LEFT);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		backgroundComponent.setFill(false);
@@ -258,8 +256,8 @@ class InstanceMapOverlay extends Overlay
 			img = img.getSubimage(
 				TILE_SIZE * (cropChunks * 8),
 				TILE_SIZE * (cropChunks * 8),
-				(Constants.SCENE_SIZE + expandedChunks * 8) * TILE_SIZE,
-				(Constants.SCENE_SIZE + expandedChunks * 8) * TILE_SIZE
+				(Constants.SCENE_SIZE + expandedChunks * 2 * 8) * TILE_SIZE,
+				(Constants.SCENE_SIZE + expandedChunks * 2 * 8) * TILE_SIZE
 			);
 		}
 		return img;
@@ -270,7 +268,7 @@ class InstanceMapOverlay extends Overlay
 	{
 		if (closeButtonImage == null)
 		{
-			closeButtonImage = spriteManager.getSprite(WINDOW_CLOSE_BUTTON_RED_X, 0);
+			closeButtonImage = spriteManager.getSprite(SpriteID.CloseButtons.RED_X, 0);
 		}
 		return closeButtonImage;
 	}
@@ -280,7 +278,7 @@ class InstanceMapOverlay extends Overlay
 	{
 		if (closeButtonHoveredImage == null)
 		{
-			closeButtonHoveredImage = spriteManager.getSprite(WINDOW_CLOSE_BUTTON_RED_X_HOVERED, 0);
+			closeButtonHoveredImage = spriteManager.getSprite(SpriteID.CloseButtons.RED_X_HOVERED, 0);
 		}
 		return closeButtonHoveredImage;
 	}

@@ -239,3 +239,224 @@ r 45 71
 // pyramid plunder
 n
 r 30 69
+
+// waterbirth dungeon
+n
+R 28 68 30 68
+
+// blast furnace
+n
+r 30 77
+
+// paterdomus
+n
+r 53 154
+
+// keldagrim
+n
+R 44 158 45 159
+
+// abyss and abyssal nexus
+n
+R 46 74 48 75
+
+// abyssal area
+n
+r 47 76
+
+// temple of ikov
+n
+R 41 153 41 154
+m 41 152
+C 6 6 7 7
+m 42 153
+C 0 1 1 7
+C 2 5 7 7
+C 6 3 7 4
+
+// rogue's den
+n
+R 46 78 47 79
+r 47 77
+
+// castle wars underground
+n
+r 37 148
+
+// viyeldi caves
+n
+r 37 73
+
+// baba yaga's hut
+n
+m 38 72
+C 2 4 2 5
+
+// vyre mines
+n
+m 37 72
+C 1 1 3 3
+
+// jiggig
+n
+R 38 146 38 147
+
+// smoke devil dungeon
+n
+R 36 147 37 147
+
+// observatory dungeon
+n
+r 36 146
+
+// ham storeroom
+n
+r 40 81
+
+// mor ul rek
+n
+r 37 80
+R 38 79 39 80
+
+// barbarian assault lobby
+n
+r 40 82
+
+// mage training arena
+n
+r 52 150
+
+// mta telekinetic theatre
+n
+r 52 151
+
+// water ravine (spirits of the elid)
+n
+r 52 149
+m 52 148
+c 2 7
+
+// kalphite cave
+n
+r 51 148
+m 51 149
+C 0 0 7 1
+m 52 148
+C 0 0 2 6
+
+// kalphite lair
+n
+r 54 148
+
+// lumbridge underground
+n
+R 50 148 50 151
+r 49 149
+r 51 150
+
+// desert mining camp (the tourist trap)
+n
+r 51 147
+
+// ah za rhoon (shilo village)
+n
+R 45 145 45 146
+
+// tomb of bervirius (shilo village)
+n
+r 43 146
+
+// tunnel of chaos (what lies below)
+n
+r 49 81
+
+// king black dragon lair
+n
+r 35 73
+
+// evil twin random
+n
+r 29 80
+
+// surprise exam random
+n
+r 29 78
+
+// beekeeper random
+n
+m 30 78
+C 0 4 3 7
+
+// gravedigger random
+n
+m 30 78
+C 0 0 3 3
+
+// pinball random
+n
+m 30 78
+C 4 4 7 7
+
+// giant mole lair
+n
+R 27 80 27 81
+
+// robert the strong battle (ds2)
+n
+r 28 81
+
+// ancient cavern (ds2)
+n
+R 25 82 25 83
+
+// dream mentor battle
+//n
+r 28 80
+
+// dream world puzzles (lunar diplomacy)
+n
+r 27 79
+
+// dream world battle (lunar diplomacy)
+n
+r 28 79
+
+// varrock museum basement
+n
+r 27 77
+
+// barrows
+n
+r 55 151
+
+// shade catacombs
+n
+r 54 151
+
+// trollweiss dungeon
+n
+r 43 159
+
+// lamistard's tunnels (curse of arrav)
+n
+r 43 160
+
+// koschei the deathless fight (fremennik trials)
+n
+r 41 157
+
+// the kendal's cave (mountain daughter)
+n
+r 43 157
+
+// polar eagle cave
+n
+r 42 159
+
+// brine rat cavern
+n
+r 42 158
+
+// keldagrim tunnel
+n
+r 43 158

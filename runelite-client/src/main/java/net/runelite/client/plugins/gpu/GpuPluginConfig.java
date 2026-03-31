@@ -44,8 +44,8 @@ public interface GpuPluginConfig extends Config
 	)
 	@ConfigItem(
 		keyName = "drawDistance",
-		name = "Draw Distance",
-		description = "Draw distance. Requires compute shaders to be enabled.",
+		name = "Draw distance",
+		description = "Draw distance.",
 		position = 1
 	)
 	default int drawDistance()
@@ -73,15 +73,15 @@ public interface GpuPluginConfig extends Config
 		description = "Extra map area to load, in 8 tile chunks.",
 		position = 1
 	)
-	default int expandedMapLoadingChunks()
+	default int expandedMapLoadingZones()
 	{
 		return 3;
 	}
 
 	@ConfigItem(
 		keyName = "smoothBanding",
-		name = "Remove Color Banding",
-		description = "Smooths out the color banding that is present in the CPU renderer",
+		name = "Remove color banding",
+		description = "Smooths out the color banding that is present in the CPU renderer.",
 		position = 2
 	)
 	default boolean smoothBanding()
@@ -91,8 +91,8 @@ public interface GpuPluginConfig extends Config
 
 	@ConfigItem(
 		keyName = "antiAliasingMode",
-		name = "Anti Aliasing",
-		description = "Configures the anti-aliasing mode",
+		name = "Anti aliasing",
+		description = "Configures the anti-aliasing mode.",
 		position = 3
 	)
 	default AntiAliasingMode antiAliasingMode()
@@ -103,12 +103,12 @@ public interface GpuPluginConfig extends Config
 	@ConfigItem(
 		keyName = "uiScalingMode",
 		name = "UI scaling mode",
-		description = "Sampling function to use for the UI in stretched mode",
+		description = "Sampling function to use for the UI in stretched mode.",
 		position = 4
 	)
 	default UIScalingMode uiScalingMode()
 	{
-		return UIScalingMode.LINEAR;
+		return UIScalingMode.HYBRID;
 	}
 
 	@Range(
@@ -117,24 +117,12 @@ public interface GpuPluginConfig extends Config
 	@ConfigItem(
 		keyName = "fogDepth",
 		name = "Fog depth",
-		description = "Distance from the scene edge the fog starts",
+		description = "Distance from the scene edge the fog starts.",
 		position = 5
 	)
 	default int fogDepth()
 	{
 		return 0;
-	}
-
-	@ConfigItem(
-		keyName = "useComputeShaders",
-		name = "Compute Shaders",
-		description = "Offloads face sorting to GPU, enabling extended draw distance. Requires plugin restart.",
-		warning = "This feature requires OpenGL 4.3 to use. Please check that your GPU supports this.\nRestart the plugin for changes to take effect.",
-		position = 6
-	)
-	default boolean useComputeShaders()
-	{
-		return true;
 	}
 
 	@Range(
@@ -143,7 +131,7 @@ public interface GpuPluginConfig extends Config
 	)
 	@ConfigItem(
 		keyName = "anisotropicFilteringLevel",
-		name = "Anisotropic Filtering",
+		name = "Anisotropic filtering",
 		description = "Configures the anisotropic filtering level.",
 		position = 7
 	)
@@ -154,8 +142,8 @@ public interface GpuPluginConfig extends Config
 
 	@ConfigItem(
 		keyName = "colorBlindMode",
-		name = "Colorblindness Correction",
-		description = "Adjusts colors to account for colorblindness",
+		name = "Colorblindness correction",
+		description = "Adjusts colors to account for colorblindness.",
 		position = 8
 	)
 	default ColorBlindMode colorBlindMode()
@@ -163,11 +151,26 @@ public interface GpuPluginConfig extends Config
 		return ColorBlindMode.NONE;
 	}
 
+	@Range(
+		min = 0,
+		max = 100
+	)
+	@ConfigItem(
+		keyName = "colorBlindIntensity",
+		name = "Colorblindness intensity",
+		description = "Strength of the colorblindness correction effect.",
+		position = 9
+	)
+	default int colorBlindIntensity()
+	{
+		return 100;
+	}
+
 	@ConfigItem(
 		keyName = "brightTextures",
-		name = "Bright Textures",
-		description = "Use old texture lighting method which results in brighter game textures",
-		position = 9
+		name = "Bright textures",
+		description = "Use old texture lighting method which results in brighter game textures.",
+		position = 10
 	)
 	default boolean brightTextures()
 	{
@@ -177,8 +180,8 @@ public interface GpuPluginConfig extends Config
 	@ConfigItem(
 		keyName = "unlockFps",
 		name = "Unlock FPS",
-		description = "Removes the 50 FPS cap for camera movement",
-		position = 10
+		description = "Removes the 50 FPS cap for camera movement.",
+		position = 11
 	)
 	default boolean unlockFps()
 	{
@@ -194,9 +197,9 @@ public interface GpuPluginConfig extends Config
 
 	@ConfigItem(
 		keyName = "vsyncMode",
-		name = "Vsync Mode",
-		description = "Method to synchronize frame rate with refresh rate",
-		position = 11
+		name = "Vsync mode",
+		description = "Method to synchronize frame rate with refresh rate.",
+		position = 12
 	)
 	default SyncMode syncMode()
 	{
@@ -205,9 +208,9 @@ public interface GpuPluginConfig extends Config
 
 	@ConfigItem(
 		keyName = "fpsTarget",
-		name = "FPS Target",
-		description = "Target FPS when unlock FPS is enabled and Vsync mode is OFF",
-		position = 12
+		name = "FPS target",
+		description = "Target FPS when 'Unlock FPS' is enabled and 'Vsync mode' is off.",
+		position = 13
 	)
 	@Range(
 		min = 1,
@@ -216,5 +219,16 @@ public interface GpuPluginConfig extends Config
 	default int fpsTarget()
 	{
 		return 60;
+	}
+
+	@ConfigItem(
+		keyName = "removeVertexSnapping",
+		name = "Remove vertex snapping",
+		description = "Removes vertex snapping from most animations.",
+		position = 14
+	)
+	default boolean removeVertexSnapping()
+	{
+		return true;
 	}
 }

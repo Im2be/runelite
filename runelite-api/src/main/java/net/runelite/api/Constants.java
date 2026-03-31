@@ -88,6 +88,7 @@ public class Constants
 
 	public static final int TILE_FLAG_BRIDGE = 2;
 	public static final int TILE_FLAG_UNDER_ROOF = 4;
+	public static final int TILE_FLAG_VIS_BELOW = 8;
 
 	/**
 	 * Flag for roof removal to remove the roofs above the player's current position.
@@ -146,4 +147,8 @@ public class Constants
 	 * @see ItemComposition#getPrice
 	 */
 	public static final float HIGH_ALCHEMY_MULTIPLIER = .6f;
+
+	public static final int CLICK_ACTION_NONE = 0;
+	public static final int CLICK_ACTION_WALK = 1;
+	public static final int CLICK_ACTION_SET_HEADING = 2;
 }

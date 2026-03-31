@@ -38,29 +38,36 @@ import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.MainBufferProvider;
+import net.runelite.api.Player;
 import net.runelite.api.Renderable;
 import net.runelite.api.Skill;
+import net.runelite.api.WorldView;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.FakeXpDrop;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.PostClientTick;
 import net.runelite.api.events.ScriptCallbackEvent;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.hooks.Callbacks;
-import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetItem;
 import net.runelite.api.worldmap.WorldMap;
 import net.runelite.api.worldmap.WorldMapRenderer;
 import net.runelite.client.Notifier;
+import net.runelite.client.RuneLiteProperties;
+import net.runelite.client.RuntimeConfig;
 import net.runelite.client.TelemetryClient;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.eventbus.EventBus;
@@ -75,7 +82,6 @@ import net.runelite.client.ui.overlay.OverlayRenderer;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.DeferredEventBus;
 import net.runelite.client.util.LinkBrowser;
-import net.runelite.client.util.OSType;
 import net.runelite.client.util.RSTimeUnit;
 
 /**
@@ -107,13 +113,16 @@ public class Hooks implements Callbacks
 	private final ClientUI clientUi;
 	@Nullable
 	private final TelemetryClient telemetryClient;
+	@Nullable
+	private final RuntimeConfig runtimeConfig;
+	private final boolean developerMode;
+	private final RenderCallbackManager renderCallbackManager;
 
 	private Dimension lastStretchedDimensions;
 	private VolatileImage stretchedImage;
 	private Graphics2D stretchedGraphics;
 
 	private long lastCheck;
-	private boolean ignoreNextNpcUpdate;
 	private boolean shouldProcessGameTick;
 
 	private static MainBufferProvider lastMainBufferProvider;
@@ -123,13 +132,21 @@ public class Hooks implements Callbacks
 	private boolean rateLimitedError;
 	private int errorBackoff = 1;
 
+	/**
+	 * use {@link RenderCallbackManager} instead
+	 */
 	@FunctionalInterface
-	public interface RenderableDrawListener
+	@Deprecated
+	public interface RenderableDrawListener extends RenderCallback
 	{
 		boolean draw(Renderable renderable, boolean ui);
-	}
 
-	private final List<RenderableDrawListener> renderableDrawListeners = new ArrayList<>();
+		@Override
+		default boolean addEntity(Renderable renderable, boolean ui)
+		{
+			return draw(renderable, ui);
+		}
+	}
 
 	/**
 	 * Get the Graphics2D for the MainBufferProvider image
@@ -168,7 +185,10 @@ public class Hooks implements Callbacks
 		DrawManager drawManager,
 		Notifier notifier,
 		ClientUI clientUi,
-		@Nullable TelemetryClient telemetryClient
+		@Nullable TelemetryClient telemetryClient,
+		@Nullable RuntimeConfig runtimeConfig,
+		@Named("developerMode") final boolean developerMode,
+		RenderCallbackManager renderCallbackManager
 	)
 	{
 		this.client = client;
@@ -185,6 +205,9 @@ public class Hooks implements Callbacks
 		this.notifier = notifier;
 		this.clientUi = clientUi;
 		this.telemetryClient = telemetryClient;
+		this.runtimeConfig = runtimeConfig;
+		this.developerMode = developerMode;
+		this.renderCallbackManager = renderCallbackManager;
 		eventBus.register(this);
 	}
 
@@ -267,7 +290,7 @@ public class Hooks implements Callbacks
 	 */
 	private void checkWorldMap()
 	{
-		Widget widget = client.getWidget(ComponentID.WORLD_MAP_MAPVIEW);
+		Widget widget = client.getWidget(InterfaceID.Worldmap.MAP_CONTAINER);
 
 		if (widget != null)
 		{
@@ -461,8 +484,7 @@ public class Hooks implements Callbacks
 	private Image screenshot(Image src)
 	{
 		// scale source image to the size of the client ui
-		final AffineTransform transform = OSType.getOSType() == OSType.MacOS ? new AffineTransform() :
-			clientUi.getGraphicsConfiguration().getDefaultTransform();
+		final AffineTransform transform = clientUi.getGraphicsConfiguration().getDefaultTransform();
 		int swidth = src.getWidth(null);
 		int sheight = src.getHeight(null);
 		int twidth = (int) (swidth * transform.getScaleX() + .5);
@@ -507,34 +529,10 @@ public class Hooks implements Callbacks
 		}
 	}
 
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
-		switch (gameStateChanged.getGameState())
-		{
-			case LOGGING_IN:
-			case HOPPING:
-				ignoreNextNpcUpdate = true;
-		}
-	}
-
 	@Override
-	public void updateNpcs()
+	public void serverTick()
 	{
-		if (ignoreNextNpcUpdate)
-		{
-			// After logging in an NPC update happens outside of the normal game tick, which
-			// is sent prior to skills and vars being bursted, so ignore it.
-			ignoreNextNpcUpdate = false;
-			log.debug("Skipping login updateNpc");
-		}
-		else
-		{
-			// The NPC update event seem to run every server tick,
-			// but having the game tick event after all packets
-			// have been processed is typically more useful.
-			shouldProcessGameTick = true;
-		}
+		shouldProcessGameTick = true;
 	}
 
 	@Override
@@ -591,14 +589,22 @@ public class Hooks implements Callbacks
 		eventBus.post(fakeXpDrop);
 	}
 
+	/**
+	 * use {@link RenderCallbackManager#register(RenderCallback)} instead
+	 */
+	@Deprecated
 	public void registerRenderableDrawListener(RenderableDrawListener listener)
 	{
-		renderableDrawListeners.add(listener);
+		renderCallbackManager.register(listener);
 	}
 
+	/**
+	 * use {@link RenderCallbackManager#unregister(RenderCallback)} instead
+	 */
+	@Deprecated
 	public void unregisterRenderableDrawListener(RenderableDrawListener listener)
 	{
-		renderableDrawListeners.remove(listener);
+		renderCallbackManager.unregister(listener);
 	}
 
 	@Override
@@ -606,17 +612,11 @@ public class Hooks implements Callbacks
 	{
 		try
 		{
-			for (RenderableDrawListener renderableDrawListener : renderableDrawListeners)
-			{
-				if (!renderableDrawListener.draw(renderable, drawingUi))
-				{
-					return false;
-				}
-			}
+			return renderCallbackManager.addEntity(renderable, drawingUi);
 		}
 		catch (Exception ex)
 		{
-			log.error("exception from renderable draw listener", ex);
+			log.error("exception from render callback", ex);
 		}
 		return true;
 	}
@@ -634,6 +634,7 @@ public class Hooks implements Callbacks
 		{
 			var sw = new StringWriter();
 			sw.append(message);
+
 			if (reason != null)
 			{
 				sw.append(" - ").append(reason.toString()).append('\n');
@@ -643,9 +644,22 @@ public class Hooks implements Callbacks
 				}
 			}
 
+			String coord = "unk";
+			Player player = client.getLocalPlayer();
+			if (player != null)
+			{
+				LocalPoint lp = player.getLocalLocation();
+				if (lp.getWorldView() == WorldView.TOPLEVEL || client.getClientThread() == Thread.currentThread())
+				{
+					WorldPoint p = WorldPoint.fromLocalInstance(client, lp);
+					coord = String.format("%d_%d_%d_%d_%d", p.getPlane(), p.getX() / 64, p.getY() / 64, p.getX() & 63, p.getY() & 63);
+				}
+			}
+
 			telemetryClient.submitError(
 				"client error",
-				sw.toString());
+				sw.toString(),
+				Collections.singletonMap("coord", coord));
 
 			if (rateLimitedError)
 			{
@@ -669,5 +683,22 @@ public class Hooks implements Callbacks
 	public void openUrl(String url)
 	{
 		LinkBrowser.browse(url);
+	}
+
+	@Override
+	public boolean isRuneLiteClientOutdated()
+	{
+		if (runtimeConfig == null || developerMode)
+		{
+			return false;
+		}
+
+		Set<String> outdatedClientVersions = runtimeConfig.getOutdatedClientVersions();
+		if (outdatedClientVersions == null)
+		{
+			return false;
+		}
+
+		return outdatedClientVersions.contains(RuneLiteProperties.getVersion());
 	}
 }
